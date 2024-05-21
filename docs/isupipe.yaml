@@ -1,0 +1,924 @@
+openapi: 3.1.0
+x-stoplight:
+  id: 13ugbg96utt3a
+info:
+  title: isupipe
+  version: "1.0"
+servers:
+  - url: "http://localhost:3000"
+paths:
+  /tag:
+    parameters: []
+    get:
+      summary: ""
+      operationId: get-tag
+      responses:
+        "200":
+          $ref: "#/components/responses/GetTag"
+      description: サービスで提供されているタグの一覧取得
+  /login:
+    parameters: []
+    post:
+      summary: ""
+      operationId: post-login
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      description: ログイン
+      requestBody:
+        $ref: "#/components/requestBodies/Login"
+  /user:
+    get:
+      summary:
+      operationId: get-users
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      summary: Create New User
+      operationId: post-user
+      responses:
+        "201":
+          description: User Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              examples:
+                New User Bob Fellow:
+                  value:
+                    id: 12
+                    firstName: Bob
+                    lastName: Fellow
+                    email: bob.fellow@gmail.com
+                    dateOfBirth: "1996-08-24"
+                    emailVerified: false
+                    createDate: "2020-11-18"
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      description: ユーザ登録
+      requestBody:
+        $ref: "#/components/requestBodies/PostUser"
+  /user/me:
+    get:
+      summary:
+      operationId: get-user-me
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  "/user/{username}":
+    parameters:
+      - schema:
+          type: string
+        name: username
+        in: path
+        required: true
+    get:
+      summary: ""
+      operationId: get-user-username
+      responses:
+        "200":
+          $ref: "#/components/responses/GetUser"
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      description: ユーザプロフィール取得
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: SESSIONID
+          description: セッションID
+  "/theme":
+    get:
+      summary: ""
+      operationId: get-theme
+      responses:
+        "200":
+          $ref: "#/components/responses/GetUserTheme"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      description: 配信者のテーマ取得
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: SESSIONID
+          description: セッションID
+  "/user/{username}/statistics":
+    parameters:
+      - schema:
+          type: string
+        name: username
+        in: path
+        required: true
+    get:
+      summary: ""
+      operationId: get-user-statistics
+      responses:
+        "200":
+          $ref: "#/components/responses/GetUserStatistics"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      description: ユーザの配信に関する統計情報取得
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: SESSIONID
+          description: セッションID
+  "/user/{username}/livestream":
+    parameters:
+      - schema:
+          type: string
+        name: username
+        in: path
+        required: true
+    get:
+      summary: ""
+      operationId: get-user-livestream
+      responses:
+        "200":
+          $ref: "#/components/responses/GetLivestreams"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      description: ユーザの配信一覧を取得
+  /livestream:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/GetLivestreams"
+        "500":
+          description: Internal Server Error
+      operationId: get-livestream
+      description: 自分が関連する配信の一覧取得
+  /livestream/search:
+    parameters:
+      - in: query
+        name: tag
+        schema:
+          type: string
+        description: 検索に使用するタグの名前
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: 取得件数の最大数
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/GetLivestreams"
+        "500":
+          description: Internal Server Error
+      operationId: get-livestream-search
+      description: ライブストリームの情報取得エンドポイント
+  "/livestream/{livestreamid}":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/GetLivestream"
+      operationId: "get-livestream-_livestreamid"
+      description: ライブストリーム視聴画面の情報取得
+  "/livestream/{livestreamid}/ngwords":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    get:
+      summary: ""
+      operationId: get-livecomment-livecommentid-ngwords
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LivestreamNgWord"
+  "/livestream/{livestreamid}/moderate":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    post:
+      summary: ""
+      operationId: "post-livestream-livestreamid-moderate"
+      requestBody:
+        $ref: "#/components/requestBodies/PostLivestreamModerate"
+      description: 配信者がNGワードを登録するエンドポイント
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  word_id:
+                    type: integer
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+  "/livestream/{livestreamid}/livecomment":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      operationId: "get-livestream-_livestreamid-livecomment"
+      description: 当該ライブストリームのライブコメント取得
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: 取得件数の最大数
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Livecomment"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+    post:
+      summary: ""
+      operationId: post-livestream-livestreamid-livecomment
+      requestBody:
+        $ref: "#/components/requestBodies/PostLivecomment"
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Content-Type
+          description: application/json
+      description: ライブストリームに対するライブコメント投稿
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Livecomment"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+  "/livestream/{livestreamid}/enter":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    post:
+      summary: ""
+      operationId: post-livestream-livestreamid-enter
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      description: 配信の視聴開始
+  "/livestream/{livestreamid}/exit":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    delete:
+      summary: ""
+      operationId: delete-livestream-livestreamid-exit
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      description: 配信の視聴終了
+  "/livestream/{livestreamid}/reaction":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      operationId: "get-livestream-_livestreamid-reaction"
+      description: 当該ライブストリームのリアクション取得
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: 取得件数の最大数
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reaction"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+    post:
+      summary: ""
+      operationId: post-livestream-livestreamid-reaction
+      requestBody:
+        $ref: "#/components/requestBodies/PostReaction"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Content-Type
+          description: application/json
+      description: リアクション投稿
+  "/livestream/{livestreamid}/statistics":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/GetLivestreamStatistics"
+        "404":
+          description: Not Found
+      operationId: "get-livestream-_livestreamid-statistics"
+      description: ライブストリームの統計情報取得
+  /livestream/reservation:
+    post:
+      summary: ""
+      operationId: post-livestream-reservation
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Livestream"
+              examples:
+                Example 1:
+                  value:
+                    id: 1
+                    user_id: 12
+                    title: ISUCON公式から出たゲームやるぞ！
+                    description: "お約束: マナーを守りましょう"
+                    start_at: 12345
+                    end_at: 12345
+                    created_at: 12345
+                    updated_at: 12345
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      requestBody:
+        $ref: "#/components/requestBodies/ReserveLivestream"
+  "/livestream/{livestreamid}/report":
+    parameters:
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    get:
+      summary: ""
+      operationId: get-livecomment-livecommentid-reports
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LivecommentReport"
+  "/livestream/{livestreamid}/livecomment/{livecommentid}/report":
+    parameters:
+      - schema:
+          type: string
+        name: livecommentid
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: livestreamid
+        in: path
+        required: true
+    post:
+      summary: ""
+      operationId: post-livecomment-livecommentid-report
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LivecommentReport"
+              examples:
+                Example 1:
+                  value:
+                    id: 1
+                    user_id: 12
+                    livestream_id: 153
+                    livecomment_id: 153
+                    created_at: 12345
+                    updated_at: 12345
+  "/icon":
+    post:
+      summary: ""
+      operationId: post-icon
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Icon"
+      requestBody:
+        $ref: "#/components/requestBodies/PostIcon"
+components:
+  schemas:
+    Theme:
+      type: object
+      required:
+        - id
+        - dark_mode
+      properties:
+        id:
+          type: integer
+        dark_mode:
+          type: boolean
+    Tag:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    Reaction:
+      type: object
+      required:
+        - id
+        - emoji_name
+        - user
+        - livestream
+        - created_at
+      properties:
+        id:
+          type: integer
+        emoji_name:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+        livestream:
+          $ref: "#/components/schemas/Livestream"
+        created_at:
+          type: integer
+    User:
+      title: User
+      type: object
+      description: ""
+      examples:
+        - id: 0
+          name: alice
+          display_name: alice_display
+          description: alice@example.com
+          created_at: true
+          is_popular: true
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the given user.
+        name:
+          type: string
+        display_name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: integer
+        updated_at:
+          type: integer
+        is_popular:
+          type: boolean
+        theme:
+          $ref: "#/components/schemas/Theme"
+      required:
+        - id
+        - name
+        - display_name
+        - description
+        - is_popular
+        - theme
+    Livestream:
+      title: Livestream
+      x-stoplight:
+        id: 7t0r49gwe046a
+      type: object
+      properties:
+        id:
+          type: integer
+        owner:
+          $ref: "#/components/schemas/User"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+        title:
+          type: string
+        description:
+          type: string
+        playlist_url:
+          type: string
+        thumbnail_url:
+          type: string
+        start_at:
+          type: integer
+        end_at:
+          type: integer
+        created_at:
+          type: integer
+        updated_at:
+          type: integer
+    Livecomment:
+      title: Livecomment
+      x-stoplight:
+        id: xefjzrvtkos6j
+      type: object
+      description: 上位チャットの投稿
+      properties:
+        id:
+          type: integer
+        user:
+          $ref: "#/components/schemas/User"
+        livestream:
+          $ref: "#/components/schemas/Livestream"
+        comment:
+          type: string
+        tip:
+          type: integer
+        created_at:
+          type: integer
+        updated_at:
+          type: integer
+    LivestreamStatistics:
+      title: LivestreamrStatistics
+      type: object
+      required:
+        - rank
+        - viewers_count
+        - total_reactions
+        - total_reports
+        - max_tip
+      properties:
+        rank:
+          type: integer
+        viewers_count:
+          type: integer
+        total_reactions:
+          type: integer
+        total_reports:
+          type: integer
+        max_tip:
+          type: integer
+    UserStatistics:
+      title: LivesteamStatistics
+      type: object
+      required:
+        - rank
+        - viewers_count
+        - total_reactions
+        - total_livecomments
+        - total_tip
+        - favorite_emoji
+      properties:
+        rank:
+          type: integer
+        viewers_count:
+          type: integer
+        total_reactions:
+          type: integer
+        total_livecomments:
+          type: integer
+        total_tip:
+          type: integer
+        favorite_emoji:
+          type: string
+    LivecommentReport:
+      title: LivecommentReport
+      x-stoplight:
+        id: ubl7oq4t4kkn8
+      type: object
+      properties:
+        id:
+          type: integer
+        reporter:
+          $ref: "#/components/schemas/User"
+        livecomment:
+          $ref: "#/components/schemas/Livecomment"
+        created_at:
+          type: integer
+        updated_at:
+          type: integer
+    LivestreamNgWord:
+      title: LivestreamNgWord
+      type: object
+      required:
+        - id
+        - livestream_id
+        - word
+        - created_at
+      properties:
+        id:
+          type: integer
+        livestream_id:
+          type: integer
+        word:
+          type: string
+        created_at:
+          type: integer
+    Icon:
+      title: Icon
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+  requestBodies:
+    PostLivestreamModerate:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ng_word:
+                type: string
+    PostUser:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              display_name:
+                type: string
+              description:
+                type: string
+              password:
+                type: string
+              theme:
+                type: object
+                properties:
+                  dark_mode:
+                    type: boolean
+          examples:
+            example-1:
+              value:
+                name: johndoe
+                display_name: johndoe_display
+                description: blah blah blah
+                password: s3cr3t
+                theme:
+                  dark_mode: true
+    Login:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+    PostReaction:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              emoji_name:
+                type: string
+          examples:
+            Example 1:
+              value:
+                emoji_name: ":innocent:"
+    PostLivecomment:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              comment:
+                type: string
+              tip:
+                type: integer
+          examples:
+            Example 1:
+              value:
+                comment: がんばれ〜
+                tip: 500
+    ReserveLivestream:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              tags:
+                type: array
+                items:
+                  type: integer
+              title:
+                type: string
+              description:
+                type: string
+              collaborators:
+                type: array
+                items:
+                  type: integer
+              start_at:
+                type: integer
+              end_at:
+                type: integer
+          examples:
+            Example 1:
+              value:
+                title: ISUCON公式から出たゲームやるぞ！
+                description: "配信のマナー: ★みんな仲良くしましょう★"
+                start_at: 0
+                end_at: 0
+    PostIcon:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+  responses:
+    GetTag:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              tags:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tag"
+    GetUser:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/User"
+    GetUserTheme:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Theme"
+    GetUserStatistics:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UserStatistics"
+    GetLivestreams:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Livestream"
+    GetLivestream:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Livestream"
+    GetLivestreamStatistics:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/LivestreamStatistics"
+    GetLivecomments:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Livecomment"
+  examples: {}

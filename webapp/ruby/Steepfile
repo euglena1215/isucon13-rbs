@@ -1,0 +1,7 @@
+D = Steep::Diagnostic
+
+target :app do
+  signature "sig"
+
+  check "app.rb"                   # File name
+end

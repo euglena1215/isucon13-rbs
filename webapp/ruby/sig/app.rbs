@@ -1,0 +1,7 @@
+module Isupipe
+  class App < Sinatra::Base
+    def self.db_conn: () -> Mysql2::Client
+    def self.connect_db: () -> Mysql2::Client
+    def self.db_transaction: () { (untyped) -> untyped } -> untyped
+  end
+end

@@ -1,0 +1,64 @@
+module Isupipe
+  class App < Sinatra::Base
+    POWERDNS_SUBDOMAIN_ADDRESS: untyped
+
+    DEFAULT_SESSION_ID_KEY: ::String
+
+    DEFAULT_SESSION_EXPIRES_KEY: ::String
+
+    DEFAULT_USER_ID_KEY: ::String
+
+    DEFAULT_USERNAME_KEY: ::String
+
+    class HttpError < StandardError
+      attr_reader code: untyped
+
+      def initialize: (untyped code, ?untyped message) -> untyped
+    end
+
+    ReserveLivestreamRequest: untyped
+
+    PostLivecommentRequest: untyped
+
+    ModerateRequest: untyped
+
+    PostReactionRequest: untyped
+
+    BCRYPT_DEFAULT_COST: ::Integer
+
+    FALLBACK_IMAGE: ::String
+
+    PostIconRequest: untyped
+
+    PostUserRequest: untyped
+
+    LoginRequest: untyped
+
+    UserRankingEntry: untyped
+
+    LivestreamRankingEntry: untyped
+    def db_conn: () -> Mysql2::Client
+
+    def connect_db: () -> Mysql2::Client
+
+    def db_transaction: () ?{ (?) -> untyped } -> untyped
+
+    def decode_request_body: (untyped data_class) -> untyped
+
+    # @rbs str: String
+    # @rbs returns Integer
+    def cast_as_integer: (String str) -> Integer
+
+    def verify_user_session!: () -> nil
+
+    def fill_livestream_response: (untyped tx, untyped livestream_model) -> untyped
+
+    def fill_livecomment_response: (untyped tx, untyped livecomment_model) -> untyped
+
+    def fill_livecomment_report_response: (untyped tx, untyped report_model) -> untyped
+
+    def fill_reaction_response: (untyped tx, untyped reaction_model) -> untyped
+
+    def fill_user_response: (untyped tx, untyped user_model) -> untyped
+  end
+end

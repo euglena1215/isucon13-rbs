@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# rbs_inline: enabled
 
 require 'base64'
 require 'bcrypt'
@@ -40,11 +41,11 @@ module Isupipe
     end
 
     helpers do
-      def db_conn
+      def db_conn #:: Mysql2::Client
         Thread.current[:db_conn] ||= connect_db
       end
 
-      def connect_db
+      def connect_db #:: Mysql2::Client
         Mysql2::Client.new(
           host: ENV.fetch('ISUCON13_MYSQL_DIALCONFIG_ADDRESS', '127.0.0.1'),
           port: ENV.fetch('ISUCON13_MYSQL_DIALCONFIG_PORT', '3306').to_i,
@@ -77,13 +78,15 @@ module Isupipe
         data_class.new(**data_class.members.map { |key| [key, body[key]] }.to_h)
       end
 
+      # @rbs str: String
+      # @rbs returns Integer
       def cast_as_integer(str)
         Integer(str, 10)
       rescue
         raise HttpError.new(400)
       end
 
-      def verify_user_session!
+      def verify_user_session! #:: nil
         sess = session[DEFAULT_SESSION_ID_KEY]
         unless sess
           raise HttpError.new(403)

@@ -9,5 +9,7 @@ gem 'puma'
 gem 'sinatra'
 gem 'sinatra-contrib'
 
+gem 'rake', require: false
 gem 'rbs', require: false
 gem 'steep', require: false
+gem 'rbs-inline', require: false

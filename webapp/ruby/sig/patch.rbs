@@ -1,0 +1,52 @@
+module Sinatra
+  class Base
+    # attr_accessor env
+    def self.env: -> Hash[String, untyped]
+
+    def self.get: (String, ?Hash[untyped, untyped]) { () -> void } -> void
+    def self.put: (String, ?Hash[untyped, untyped]) { () -> void } -> void
+    def self.post: (String, ?Hash[untyped, untyped]) { () -> void } -> void
+    def self.delete: (String, ?Hash[untyped, untyped]) { () -> void } -> void
+    def self.head: (String, ?Hash[untyped, untyped]) { () -> void } -> void
+    def self.options: (String, ?Hash[untyped, untyped]) { () -> void } -> void
+    def self.patch: (String, ?Hash[untyped, untyped]) { () -> void } -> void
+                  
+    def self.helpers: () { () -> void } -> void
+  
+    def self.enable: (*Symbol) -> void
+    def self.set: (Symbol, ?untyped) -> void
+                
+    def self.error: (singleton(Exception)) { () -> void } -> void
+                  
+    extend JSON
+    extend Helpers
+  end
+
+  module JSON
+    def json: (Hash[untyped, untyped]) -> void
+  end
+
+  module Helpers
+    def status: (?Integer) -> void
+  end
+end
+
+module Mysql2
+  class Client
+    def initialize: (Hash[(String | Symbol), untyped]) -> void
+  end
+end
+
+module JSON
+  def self.parse: (String, ?symbolize_names: bool) -> Hash[untyped, untyped]
+end
+
+module Open3
+  def self.capture2e: (*String) -> [String, Process::Status]
+end
+
+module Digest
+  class SHA256
+    def self.hexdigest: (String) -> String
+  end
+end

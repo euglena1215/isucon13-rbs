@@ -63,13 +63,13 @@ module Mysql2
   class Result
     include Enumerable[Hash[Symbol, row_value_type]]
 
-    def each: () { (Hash[Symbol, untyped]) -> void } -> void
+    def each: () { (Hash[Symbol, row_value_type]) -> void } -> void
   end
 
   class ResultAsArray
     include Enumerable[Array[row_value_type]]
 
-    def each: () { (Array[untyped]) -> void } -> void
+    def each: () { (Array[row_value_type]) -> void } -> void
   end
 end
 

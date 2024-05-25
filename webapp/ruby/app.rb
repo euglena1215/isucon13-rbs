@@ -1010,7 +1010,9 @@ module Isupipe
           raise if livestream.is_a?(Array)
           tx.xquery('SELECT * FROM livecomments WHERE livestream_id = ?', livestream.fetch(:id)).each do |livecomment|
             raise if livecomment.is_a?(Array)
-            total_tip += livecomment.fetch(:tip)
+            tip = livecomment.fetch(:tip)
+            raise unless tip.is_a?(Integer)
+            total_tip += tip
             total_livecomments += 1
           end
         end

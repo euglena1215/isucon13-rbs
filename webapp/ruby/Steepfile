@@ -3,5 +3,7 @@ D = Steep::Diagnostic
 target :app do
   signature "sig"
 
-  check "app.rb"                   # File name
+  check "app.rb"
+
+  library "json", "securerandom", "base64", "digest"
 end

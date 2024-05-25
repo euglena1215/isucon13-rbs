@@ -1,7 +1,13 @@
 module Sinatra
   class Base
-    # attr_accessor env
+    # attr_accessor :env
     def self.env: -> Hash[String, untyped]
+    # attr_accessor :params
+    def self.params: -> Sinatra::IndifferentHash
+    # attr_accessor :request
+    def request: -> Rack::Request
+    
+    def self.halt: (Integer) -> void
 
     def self.get: (String, ?Hash[untyped, untyped]) { () -> void } -> void
     def self.put: (String, ?Hash[untyped, untyped]) { () -> void } -> void
@@ -28,25 +34,62 @@ module Sinatra
 
   module Helpers
     def status: (?Integer) -> void
+    def logger: -> Rack::Logger
+    def session: -> Hash[untyped, untyped]
+    def content_type: (?String, ?Hash[Symbol, untyped]) -> void
+    def send_file: (String, ?Hash[Symbol, untyped]) -> void
+  end
+
+  class IndifferentHash < Hash[(String | Symbol), untyped]
+  end
+end
+
+module Rack
+  class Logger
+    def warn: (String) -> void
+    def info: (String) -> void
   end
 end
 
 module Mysql2
   class Client
     def initialize: (Hash[(String | Symbol), untyped]) -> void
+    def query: (String, **untyped) -> (Mysql2::Result | Mysql2::ResultAsArray)
+    def last_id: () -> Integer
+  end
+
+  type row_value_type = String | Integer | nil
+
+  class Result
+    include Enumerable[Hash[Symbol, row_value_type]]
+
+    def each: () { (Hash[Symbol, untyped]) -> void } -> void
+  end
+
+  class ResultAsArray
+    include Enumerable[Array[row_value_type]]
+
+    def each: () { (Array[untyped]) -> void } -> void
   end
 end
 
-module JSON
-  def self.parse: (String, ?symbolize_names: bool) -> Hash[untyped, untyped]
+# mysql2-cs-bind
+module Mysql2
+  class Client
+    def xquery: (String, *untyped, **untyped) -> (Mysql2::Result | Mysql2::ResultAsArray)
+  end
 end
 
 module Open3
   def self.capture2e: (*String) -> [String, Process::Status]
 end
 
-module Digest
-  class SHA256
-    def self.hexdigest: (String) -> String
+# module JSON
+#   def self.parse: (String) -> Hash[untyped, untyped]
+# end
+
+module BCrypt
+  class Password
+    def is_password?: (String) -> bool
   end
 end

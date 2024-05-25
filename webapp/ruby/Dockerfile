@@ -1,4 +1,4 @@
-FROM ruby:3.2.2-bookworm
+FROM ruby:3.3.1-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \

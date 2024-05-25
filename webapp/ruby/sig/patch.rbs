@@ -84,10 +84,6 @@ module Open3
   def self.capture2e: (*String) -> [String, Process::Status]
 end
 
-# module JSON
-#   def self.parse: (String) -> Hash[untyped, untyped]
-# end
-
 module BCrypt
   class Password
     def is_password?: (String) -> bool

@@ -426,7 +426,7 @@ module Isupipe
           end
 
         livestream_models.map do |livestream_model|
-          raise unless livestream_model.is_a?(Hash)
+          raise if livestream_model.nil?
           fill_livestream_response(tx, livestream_model)
         end
       end
@@ -550,7 +550,7 @@ module Isupipe
 
       reports = db_transaction do |tx|
         livestream_model = tx.xquery('SELECT * FROM livestreams WHERE id = ?', livestream_id).first
-        raise unless livestream_model.is_a?(Hash)
+        raise if livestream_model.nil?
         if livestream_model.fetch(:user_id) != user_id
           raise HttpError.new(403, "can't get other streamer's livecomment reports")
         end
@@ -1143,7 +1143,7 @@ module Isupipe
           LIMIT 1
         SQL
         favorite_emoji = raw_favorite_emoji.then do |row|
-          row.nil? || row.is_a?(Hash) ? row&.fetch(:emoji_name) : raise
+          row.nil? ? raise : row.fetch(:emoji_name)
         end
 
         {

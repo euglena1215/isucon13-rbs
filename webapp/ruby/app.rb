@@ -231,12 +231,7 @@ module Isupipe
         image =
           if icon_model
             image = icon_model.fetch(:image)
-            # image.is_a?(String) ? image : raise
-            if image.is_a?(String)
-              image
-            else
-              raise
-            end
+            image.is_a?(String) ? image : raise
           else
             File.binread(FALLBACK_IMAGE)
           end

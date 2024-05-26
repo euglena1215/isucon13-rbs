@@ -6,4 +6,8 @@ target :app do
   check "app.rb"
 
   library "json", "securerandom", "base64", "digest"
+
+  configure_code_diagnostics do |hash|
+    hash[D::Ruby::MethodDefinitionMissing] = :warning
+  end
 end

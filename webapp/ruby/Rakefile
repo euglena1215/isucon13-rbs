@@ -7,7 +7,7 @@ namespace :rbs do
   end
 
   task :collection do
-    sh 'bundle', 'exec', 'rbs', 'collection', 'install', '--frozen'
+    sh 'bundle', 'exec', 'rbs', 'collection', 'install'#, '--frozen'
   end
 
   task :rbs_inline do

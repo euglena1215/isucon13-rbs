@@ -26,8 +26,12 @@ module Isupipe
     DEFAULT_USERNAME_KEY = 'USERNAME'
 
     class HttpError < StandardError
-      attr_reader :code
+      # @dynamic code
+      attr_reader :code #:: Integer
 
+      # @rbs code: Integer
+      # @rbs message: ?String
+      # @rbs returns void
       def initialize(code, message = nil)
         super(message || "HTTP error #{code}")
         @code = code
@@ -36,16 +40,20 @@ module Isupipe
 
     error HttpError do
       e = env['sinatra.error']
+      raise unless e.is_a?(HttpError)
       status e.code
       json(error: e.message)
     end
 
     helpers do
-      def db_conn #:: Mysql2::Client
+      def db_conn #:: Mysql2::Client[Mysql2::ResultAsHash]
         Thread.current[:db_conn] ||= connect_db
       end
 
-      def connect_db #:: Mysql2::Client
+      # @rbs!
+      #   def self.db_conn: () -> Mysql2::Client[Mysql2::ResultAsHash]
+
+      def connect_db #:: Mysql2::Client[Mysql2::ResultAsHash]
         Mysql2::Client.new(
           host: ENV.fetch('ISUCON13_MYSQL_DIALCONFIG_ADDRESS', '127.0.0.1'),
           port: ENV.fetch('ISUCON13_MYSQL_DIALCONFIG_PORT', '3306').to_i,
@@ -58,7 +66,12 @@ module Isupipe
         )
       end
 
-      def db_transaction(&block) #:: () { (Mysql2::Client) -> untyped } -> untyped
+      # @rbs!
+      #   def self.connect_db: () -> Mysql2::Client[Mysql2::ResultAsHash]
+
+      # @rbs yields: (Mysql2::Client[Mysql2::ResultAsHash]) -> untyped
+      # @rbs returns untyped
+      def db_transaction(&block)
         db_conn.query('BEGIN')
         ok = false
         begin
@@ -73,10 +86,18 @@ module Isupipe
         end
       end
 
+      # @rbs!
+      #   def self.db_transaction: () { (Mysql2::Client[Mysql2::ResultAsHash]) -> untyped } -> untyped
+
+      # singleton(T) が動いてほしいなあ
+      #:: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
       def decode_request_body(data_class)
         body = JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true)
         data_class.new(**data_class.members.map { |key| [key, body[key]] }.to_h)
       end
+
+      # @rbs!
+      #   def self.decode_request_body: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
 
       # @rbs str: String
       # @rbs returns Integer
@@ -85,6 +106,9 @@ module Isupipe
       rescue
         raise HttpError.new(400)
       end
+
+      # @rbs!
+      #   def self.cast_as_integer: (String str) -> Integer
 
       def verify_user_session! #:: nil
         sess = session[DEFAULT_SESSION_ID_KEY]
@@ -105,23 +129,23 @@ module Isupipe
         nil
       end
 
-      # @rbs tx: Mysql2::Client
+      # @rbs!
+      #   def self.verify_user_session!: () -> nil
+
+      # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs livestream_model: Hash[Symbol, Mysql2::row_value_type]
       # @rbs returns Hash[Symbol, untyped]
       def fill_livestream_response(tx, livestream_model)
         owner_model = tx.xquery('SELECT * FROM users WHERE id = ?', livestream_model.fetch(:user_id)).first
+        raise if owner_model.nil?
         owner = fill_user_response(tx, owner_model)
 
         tags = tx.xquery('SELECT * FROM livestream_tags WHERE livestream_id = ?', livestream_model.fetch(:id)).map do |livestream_tag_model|
-          if livestream_tag_model.is_a?(Hash)
-            tag_model = tx.xquery('SELECT * FROM tags WHERE id = ?', livestream_tag_model.fetch(:tag_id)).first || raise
-            {
-              id: tag_model.fetch(:id),
-              name: tag_model.fetch(:name),
-            }
-          else
-            raise
-          end          
+          tag_model = tx.xquery('SELECT * FROM tags WHERE id = ?', livestream_tag_model.fetch(:tag_id)).first || raise
+          {
+            id: tag_model.fetch(:id),
+            name: tag_model.fetch(:name),
+          }  
         end
 
         livestream_model.slice(:id, :title, :description, :playlist_url, :thumbnail_url, :start_at, :end_at).merge(
@@ -130,14 +154,19 @@ module Isupipe
         )
       end
 
-      # @rbs tx: Mysql2::Client
+      # @rbs!
+      #   def self.fill_livestream_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] livestream_model) -> Hash[Symbol, untyped]
+
+      # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs livecomment_model: Hash[Symbol, untyped]
       # @rbs returns Hash[Symbol, untyped]
       def fill_livecomment_response(tx, livecomment_model)
         comment_owner_model = tx.xquery('SELECT * FROM users WHERE id = ?', livecomment_model.fetch(:user_id)).first
+        raise if comment_owner_model.nil?
         comment_owner = fill_user_response(tx, comment_owner_model)
 
         livestream_model = tx.xquery('SELECT * FROM livestreams WHERE id = ?', livecomment_model.fetch(:livestream_id)).first
+        raise if livestream_model.nil?
         livestream = fill_livestream_response(tx, livestream_model)
 
         livecomment_model.slice(:id, :comment, :tip, :created_at).merge(
@@ -146,14 +175,19 @@ module Isupipe
         )
       end
 
-      # @rbs tx: Mysql2::Client
+      # @rbs!
+      #   def self.fill_livecomment_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] livecomment_model) -> Hash[Symbol, untyped]
+
+      # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs report_model: Hash[Symbol, untyped]
       # @rbs returns Hash[Symbol, untyped]
       def fill_livecomment_report_response(tx, report_model)
         reporter_model = tx.xquery('SELECT * FROM users WHERE id = ?', report_model.fetch(:user_id)).first
+        raise if reporter_model.nil?
         reporter = fill_user_response(tx, reporter_model)
 
         livecomment_model = tx.xquery('SELECT * FROM livecomments WHERE id = ?', report_model.fetch(:livecomment_id)).first
+        raise if livecomment_model.nil?
         livecomment = fill_livecomment_response(tx, livecomment_model)
 
         report_model.slice(:id, :created_at).merge(
@@ -162,14 +196,19 @@ module Isupipe
         )
       end
 
-      # @rbs tx: Mysql2::Client
+      # @rbs!
+      #   def self.fill_livecomment_report_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] report_model) -> Hash[Symbol, untyped]
+
+      # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs reaction_model: Hash[Symbol, Mysql2::row_value_type]
       # @rbs returns Hash[Symbol, untyped]
       def fill_reaction_response(tx, reaction_model)
         user_model = tx.xquery('SELECT * FROM users WHERE id = ?', reaction_model.fetch(:user_id)).first
+        raise if user_model.nil?
         user = fill_user_response(tx, user_model)
 
         livestream_model = tx.xquery('SELECT * FROM livestreams WHERE id = ?', reaction_model.fetch(:livestream_id)).first
+        raise if livestream_model.nil?
         livestream = fill_livestream_response(tx, livestream_model)
 
         reaction_model.slice(:id, :emoji_name, :created_at).merge(
@@ -178,21 +217,26 @@ module Isupipe
         )
       end
 
-      # @rbs tx: Mysql2::Client
+      # @rbs!
+      #   def self.fill_reaction_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] reaction_model) -> Hash[Symbol, untyped]                                   
+
+      # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs user_model: Hash[Symbol, Mysql2::row_value_type]
       # @rbs returns Hash[Symbol, untyped]
       def fill_user_response(tx, user_model)
-        theme_model = tx.xquery('SELECT * FROM themes WHERE user_id = ?', user_model.fetch(:id)).first.then do |row|
-          row.is_a?(Hash) ? row : raise
-        end
-        icon_model = tx.xquery('SELECT image FROM icons WHERE user_id = ?', user_model.fetch(:id)).first.then do |row|
-          row.nil? || row.is_a?(Hash) ? row : raise
-        end
+        theme_model = tx.xquery('SELECT * FROM themes WHERE user_id = ?', user_model.fetch(:id)).first
+        raise if theme_model.nil?        
+        icon_model = tx.xquery('SELECT image FROM icons WHERE user_id = ?', user_model.fetch(:id)).first
         
         image =
           if icon_model
             image = icon_model.fetch(:image)
-            image.is_a?(String) ? image : raise
+            # image.is_a?(String) ? image : raise
+            if image.is_a?(String)
+              image
+            else
+              raise
+            end
           else
             File.binread(FALLBACK_IMAGE)
           end
@@ -210,6 +254,9 @@ module Isupipe
           icon_hash:,
         }
       end
+
+      # @rbs!
+      #   def self.fill_user_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] user_model) -> Hash[Symbol, untyped]
     end
 
     # 初期化
@@ -230,6 +277,7 @@ module Isupipe
       tag_models = db_transaction do |tx|
         tx.query('SELECT * FROM tags')
       end
+
 
       json(
         tags: tag_models.map { |tag_model|
@@ -252,7 +300,6 @@ module Isupipe
         unless user_model
           raise HttpError.new(404)
         end
-        raise unless user_model.is_a?(Hash)
         tx.xquery('SELECT * FROM themes WHERE user_id = ?', user_model.fetch(:id)).first
       end
 
@@ -264,6 +311,21 @@ module Isupipe
 
     # livestream
 
+    # @rbs!
+    #   class ReserveLivestreamRequest
+    #     extend Data::_DataClass
+    #     attr_reader tags: Array[Integer]
+    #     attr_reader title: String
+    #     attr_reader description: String
+    #     attr_reader playlist_url: String
+    #     attr_reader thumbnail_url: String
+    #     attr_reader start_at: Integer
+    #     attr_reader end_at: Integer
+    #     def self.new: (*untyped) -> ReserveLivestreamRequest
+    #                 | (**untyped) -> ReserveLivestreamRequest | ...
+    #   end
+
+    # @rbs skip
     ReserveLivestreamRequest = Data.define(
       :tags,
       :title,
@@ -287,6 +349,7 @@ module Isupipe
       end
 
       req = decode_request_body(ReserveLivestreamRequest)
+      raise unless req.is_a?(ReserveLivestreamRequest)
 
       livestream = db_transaction do |tx|
         # 2023/11/25 10:00からの１年間の期間内であるかチェック
@@ -301,14 +364,11 @@ module Isupipe
         # 予約枠をみて、予約が可能か調べる
         # NOTE: 並列な予約のoverbooking防止にFOR UPDATEが必要
         tx.xquery('SELECT * FROM reservation_slots WHERE start_at >= ? AND end_at <= ? FOR UPDATE', req.start_at, req.end_at).each do |slot|
-          raise unless slot.is_a?(Hash)
           count = tx.xquery('SELECT slot FROM reservation_slots WHERE start_at = ? AND end_at = ?', slot.fetch(:start_at), slot.fetch(:end_at)).first.then do |row|
-            if row.is_a?(Hash)
-              slot = row.fetch(:slot)
-              slot.is_a?(Integer) ? slot : raise
-            else
-              raise
-            end 
+            raise if row.nil?
+            row.fetch(:slot).then do |s|
+              s.is_a?(Integer) ? s : raise
+            end
           end
           logger.info("#{slot.fetch(:start_at)} ~ #{slot.fetch(:end_at)}予約枠の残数 = #{slot.fetch(:slot)}")
           if count < 1
@@ -351,7 +411,6 @@ module Isupipe
             # タグによる取得
             tag_id_list = tx.xquery('SELECT id FROM tags WHERE name = ?', key_tag_name, as: :array).map(&:first)
             tx.xquery('SELECT * FROM livestream_tags WHERE tag_id IN (?) ORDER BY livestream_id DESC', tag_id_list).map do |key_tagged_livestream|
-              raise unless key_tagged_livestream.is_a?(Hash)
               tx.xquery('SELECT * FROM livestreams WHERE id = ?', key_tagged_livestream.fetch(:livestream_id)).first
             end
           else
@@ -388,7 +447,6 @@ module Isupipe
 
       livestreams = db_transaction do |tx|
         tx.xquery('SELECT * FROM livestreams WHERE user_id = ?', user_id).map do |livestream_model|
-          raise unless livestream_model.is_a?(Hash)
           fill_livestream_response(tx, livestream_model)
         end
       end
@@ -405,10 +463,8 @@ module Isupipe
         unless user
           raise HttpError.new(404, 'user not found')
         end
-        raise unless user.is_a?(Hash)
 
         tx.xquery('SELECT * FROM livestreams WHERE user_id = ?', user.fetch(:id)).map do |livestream_model|
-          raise unless livestream_model.is_a?(Hash)
           fill_livestream_response(tx, livestream_model)
         end
       end
@@ -470,7 +526,6 @@ module Isupipe
         unless livestream_model
           raise HttpError.new(404)
         end
-        raise unless livestream_model.is_a?(Hash)
 
         fill_livestream_response(tx, livestream_model)
       end
@@ -501,7 +556,6 @@ module Isupipe
         end
 
         tx.xquery('SELECT * FROM livecomment_reports WHERE livestream_id = ?', livestream_id).map do |report_model|
-          raise unless report_model.is_a?(Hash)
           fill_livecomment_report_response(tx, report_model)
         end
       end
@@ -523,7 +577,6 @@ module Isupipe
         end
 
         tx.xquery(query, livestream_id).map do |livecomment_model|
-          raise unless livecomment_model.is_a?(Hash)
           fill_livecomment_response(tx, livecomment_model)
         end
       end
@@ -551,6 +604,16 @@ module Isupipe
       json(ng_words)
     end
 
+    # @rbs!
+    #   class PostLivecommentRequest
+    #     extend Data::_DataClass
+    #     attr_reader comment: String
+    #     attr_reader tip: Integer
+    #     def self.new: (*untyped) -> PostLivecommentRequest
+    #                 | (**untyped) -> PostLivecommentRequest | ...
+    #   end
+
+    # @rbs skip
     PostLivecommentRequest = Data.define(
       :comment,
       :tip,
@@ -571,17 +634,16 @@ module Isupipe
       livestream_id = cast_as_integer(params[:livestream_id])
 
       req = decode_request_body(PostLivecommentRequest)
+      raise unless req.is_a?(PostLivecommentRequest)
 
       livecomment = db_transaction do |tx|
         livestream_model = tx.xquery('SELECT * FROM livestreams WHERE id = ?', livestream_id).first
         unless livestream_model
           raise HttpError.new(404, 'livestream not found')
         end
-        raise unless livestream_model.is_a?(Hash)
 
         # スパム判定
         tx.xquery('SELECT id, user_id, livestream_id, word FROM ng_words WHERE user_id = ? AND livestream_id = ?', livestream_model.fetch(:user_id), livestream_model.fetch(:id)).each do |ng_word|
-          raise unless ng_word.is_a?(Hash)
           query = <<~SQL
             SELECT COUNT(*)
             FROM
@@ -660,7 +722,16 @@ module Isupipe
       json(report)
     end
 
-    ModerateRequest = Data.define(:ng_word)
+    # @rbs!
+    #   class ModerateRequest
+    #     extend Data::_DataClass
+    #     attr_reader ng_word: String
+    #     def self.new: (*untyped) -> ModerateRequest
+    #                 | (**untyped) -> ModerateRequest | ...
+    #   end
+
+    # @rbs skip
+    ModerateRequest = Data.define(:ng_word) #:: Class
 
     # 配信者によるモデレーション (NGワード登録)
     post '/api/livestream/:livestream_id/moderate' do
@@ -677,6 +748,7 @@ module Isupipe
       livestream_id = cast_as_integer(params[:livestream_id])
 
       req = decode_request_body(ModerateRequest)
+      raise unless req.is_a?(ModerateRequest)
 
       word_id = db_transaction do |tx|
         # 配信者自身の配信に対するmoderateなのかを検証
@@ -690,10 +762,8 @@ module Isupipe
 
         # NGワードにヒットする過去の投稿も全削除する
         tx.xquery('SELECT * FROM ng_words WHERE livestream_id = ?', livestream_id).each do |ng_word|
-          raise unless ng_word.is_a?(Hash)
           # ライブコメント一覧取得
           tx.xquery('SELECT * FROM livecomments').each do |livecomment|
-            raise unless livecomment.is_a?(Hash)
             query = <<~SQL
               DELETE FROM livecomments
               WHERE
@@ -731,13 +801,22 @@ module Isupipe
         end
 
         tx.xquery(query, livestream_id).map do |reaction_model|
-          reaction_model.is_a?(Hash) ? fill_reaction_response(tx, reaction_model) : raise
+          fill_reaction_response(tx, reaction_model)
         end
       end
 
       json(reactions)
     end
 
+    # @rbs!
+    #   class PostReactionRequest
+    #     extend Data::_DataClass
+    #     attr_reader emoji_name: String
+    #     def self.new: (*untyped) -> PostReactionRequest
+    #                 | (**untyped) -> PostReactionRequest | ...
+    #   end
+
+    # @rbs skip
     PostReactionRequest = Data.define(:emoji_name)
 
     post '/api/livestream/:livestream_id/reaction' do
@@ -754,6 +833,7 @@ module Isupipe
       livestream_id = Integer(params[:livestream_id], 10)
 
       req = decode_request_body(PostReactionRequest)
+      raise unless req.is_a?(PostReactionRequest)
 
       reaction = db_transaction do |tx|
         created_at = Time.now.to_i
@@ -784,7 +864,6 @@ module Isupipe
         unless user
           raise HttpError.new(404, 'not found user that has the given username')
         end
-        raise unless user.is_a?(Hash)
         tx.xquery('SELECT image FROM icons WHERE user_id = ?', user.fetch(:id)).first
       end
 
@@ -796,6 +875,15 @@ module Isupipe
       end
     end
 
+    # @rbs!
+    #   class PostIconRequest
+    #     extend Data::_DataClass
+    #     attr_reader image: String
+    #     def self.new: (*untyped) -> PostIconRequest
+    #                 | (**untyped) -> PostIconRequest | ...
+    #   end
+
+    # @rbs skip
     PostIconRequest = Data.define(:image)
 
     post '/api/icon' do
@@ -811,6 +899,7 @@ module Isupipe
       end
 
       req = decode_request_body(PostIconRequest)
+      raise unless req.is_a?(PostIconRequest)
       image = Base64.decode64(req.image)
 
       icon_id = db_transaction do |tx|
@@ -842,16 +931,25 @@ module Isupipe
         unless user_model
           raise HttpError.new(404)
         end
-        if user_model.is_a?(Hash)
-          fill_user_response(tx, user_model)
-        else
-          raise
-        end        
+        fill_user_response(tx, user_model)    
       end
 
       json(user)
     end
 
+    # @rbs!
+    #   class PostUserRequest
+    #     extend Data::_DataClass
+    #     attr_reader name: String
+    #     attr_reader display_name: String
+    #     attr_reader description: String
+    #     attr_reader password: String
+    #     attr_reader theme: Hash[Symbol, untyped]
+    #     def self.new: (*untyped) -> PostUserRequest
+    #                 | (**untyped) -> PostUserRequest | ...
+    #   end
+
+    # @rbs skip
     PostUserRequest = Data.define(
       :name,
       :display_name,
@@ -864,6 +962,7 @@ module Isupipe
     # ユーザ登録API
     post '/api/register' do
       req = decode_request_body(PostUserRequest)
+      raise unless req.is_a?(PostUserRequest)
       if req.name == 'pipe'
         raise HttpError.new(400, "the username 'pipe' is reserved")
       end
@@ -893,6 +992,16 @@ module Isupipe
       json(user)
     end
 
+    # @rbs!
+    #   class LoginRequest
+    #     extend Data::_DataClass
+    #     attr_reader username: String
+    #     attr_reader password: String
+    #     def self.new: (*untyped) -> LoginRequest
+    #                 | (**untyped) -> LoginRequest | ...
+    #   end
+
+    # @rbs skip
     LoginRequest = Data.define(
       :username,
       # password is non-hashed password.
@@ -902,6 +1011,7 @@ module Isupipe
     # ユーザログインAPI
     post '/api/login' do
       req = decode_request_body(LoginRequest)
+      raise unless req.is_a?(LoginRequest)
 
       user_model = db_transaction do |tx|
         # usernameはUNIQUEなので、whereで一意に特定できる
@@ -939,7 +1049,6 @@ module Isupipe
         unless user_model
           raise HttpError.new(404)
         end
-        raise unless user_model.is_a?(Hash)
 
         fill_user_response(tx, user_model)
       end
@@ -962,13 +1071,11 @@ module Isupipe
         unless user
           raise HttpError.new(400)
         end
-        raise if user.is_a?(Array)
 
         # ランク算出
         users = tx.xquery('SELECT * FROM users').to_a
 
         ranking = users.map do |user|
-          raise if user.is_a?(Array)
           raw_reactions = tx.xquery(<<~SQL, user.fetch(:id), as: :array).first
             SELECT COUNT(*) FROM users u
             INNER JOIN livestreams l ON l.user_id = u.id
@@ -1007,9 +1114,7 @@ module Isupipe
         total_tip = 0
         livestreams = tx.xquery('SELECT * FROM livestreams WHERE user_id = ?', user.fetch(:id))
         livestreams.each do |livestream|
-          raise if livestream.is_a?(Array)
           tx.xquery('SELECT * FROM livecomments WHERE livestream_id = ?', livestream.fetch(:id)).each do |livecomment|
-            raise if livecomment.is_a?(Array)
             tip = livecomment.fetch(:tip)
             raise unless tip.is_a?(Integer)
             total_tip += tip
@@ -1020,7 +1125,6 @@ module Isupipe
         # 合計視聴者数
         viewers_count = 0
         livestreams.each do |livestream|
-          raise if livestream.is_a?(Array)
           cnt = tx.xquery('SELECT COUNT(*) FROM livestream_viewers_history WHERE livestream_id = ?', livestream.fetch(:id), as: :array).first.then do |row|
             row.is_a?(Array) && row[0].is_a?(Integer) ? row[0] : raise
           end
@@ -1055,6 +1159,16 @@ module Isupipe
       json(stats)
     end
 
+    # @rbs!
+    #   class LivestreamRankingEntry
+    #     extend Data::_DataClass
+    #     attr_reader livestream_id: Integer
+    #     attr_reader score: Integer
+    #     def self.new: (*untyped) -> LivestreamRankingEntry
+    #                 | (**untyped) -> LivestreamRankingEntry | ...
+    #   end    
+
+    # @rbs skip
     LivestreamRankingEntry = Data.define(:livestream_id, :score)
 
     # ライブ配信統計情報
@@ -1069,7 +1183,6 @@ module Isupipe
 
         # ランク算出
         ranking = tx.xquery('SELECT * FROM livestreams').map do |livestream|
-          raise if livestream.is_a?(Array)
           reactions = tx.xquery('SELECT COUNT(*) FROM livestreams l INNER JOIN reactions r ON l.id = r.livestream_id WHERE l.id = ?', livestream.fetch(:id), as: :array).first.then do |row|
             row.is_a?(Array) && row[0].is_a?(Integer) ? row[0] : raise
           end

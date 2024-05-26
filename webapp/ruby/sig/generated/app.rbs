@@ -11,69 +11,161 @@ module Isupipe
     DEFAULT_USERNAME_KEY: ::String
 
     class HttpError < StandardError
-      attr_reader code: untyped
+      # @dynamic code
+      attr_reader code: Integer
 
-      def initialize: (untyped code, ?untyped message) -> untyped
+      # @rbs code: Integer
+      # @rbs message: ?String
+      # @rbs returns void
+      def initialize: (Integer code, ?untyped message) -> void
     end
 
-    ReserveLivestreamRequest: untyped
+    def db_conn: () -> Mysql2::Client[Mysql2::ResultAsHash]
 
-    PostLivecommentRequest: untyped
+    def self.db_conn: () -> Mysql2::Client[Mysql2::ResultAsHash]
 
-    ModerateRequest: untyped
+    def connect_db: () -> Mysql2::Client[Mysql2::ResultAsHash]
 
-    PostReactionRequest: untyped
+    def self.connect_db: () -> Mysql2::Client[Mysql2::ResultAsHash]
 
-    BCRYPT_DEFAULT_COST: ::Integer
+    # @rbs yields: (Mysql2::Client[Mysql2::ResultAsHash]) -> untyped
+    # @rbs returns untyped
+    def db_transaction: () { (Mysql2::Client[Mysql2::ResultAsHash]) -> untyped } -> untyped
 
-    FALLBACK_IMAGE: ::String
+    def self.db_transaction: () { (Mysql2::Client[Mysql2::ResultAsHash]) -> untyped } -> untyped
 
-    PostIconRequest: untyped
+    # singleton(T) が動いてほしいなあ
+    # :: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
+    def decode_request_body: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
 
-    PostUserRequest: untyped
-
-    LoginRequest: untyped
-
-    UserRankingEntry: untyped
-
-    LivestreamRankingEntry: untyped
-    def db_conn: () -> Mysql2::Client
-
-    def connect_db: () -> Mysql2::Client
-
-    def db_transaction: () ?{ (?) -> untyped } -> untyped
-
-    def decode_request_body: (untyped data_class) -> untyped
+    def self.decode_request_body: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
 
     # @rbs str: String
     # @rbs returns Integer
     def cast_as_integer: (String str) -> Integer
 
+    def self.cast_as_integer: (String str) -> Integer
+
     def verify_user_session!: () -> nil
 
-    # @rbs tx: Mysql2::Client
+    def self.verify_user_session!: () -> nil
+
+    # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs livestream_model: Hash[Symbol, Mysql2::row_value_type]
     # @rbs returns Hash[Symbol, untyped]
-    def fill_livestream_response: (Mysql2::Client tx, Hash[Symbol, Mysql2::row_value_type] livestream_model) -> Hash[Symbol, untyped]
+    def fill_livestream_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] livestream_model) -> Hash[Symbol, untyped]
 
-    # @rbs tx: Mysql2::Client
+    def self.fill_livestream_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] livestream_model) -> Hash[Symbol, untyped]
+
+    # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs livecomment_model: Hash[Symbol, untyped]
     # @rbs returns Hash[Symbol, untyped]
-    def fill_livecomment_response: (Mysql2::Client tx, Hash[Symbol, untyped] livecomment_model) -> Hash[Symbol, untyped]
+    def fill_livecomment_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] livecomment_model) -> Hash[Symbol, untyped]
 
-    # @rbs tx: Mysql2::Client
+    def self.fill_livecomment_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] livecomment_model) -> Hash[Symbol, untyped]
+
+    # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs report_model: Hash[Symbol, untyped]
     # @rbs returns Hash[Symbol, untyped]
-    def fill_livecomment_report_response: (Mysql2::Client tx, Hash[Symbol, untyped] report_model) -> Hash[Symbol, untyped]
+    def fill_livecomment_report_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] report_model) -> Hash[Symbol, untyped]
 
-    # @rbs tx: Mysql2::Client
+    def self.fill_livecomment_report_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] report_model) -> Hash[Symbol, untyped]
+
+    # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs reaction_model: Hash[Symbol, Mysql2::row_value_type]
     # @rbs returns Hash[Symbol, untyped]
-    def fill_reaction_response: (Mysql2::Client tx, Hash[Symbol, Mysql2::row_value_type] reaction_model) -> Hash[Symbol, untyped]
+    def fill_reaction_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] reaction_model) -> Hash[Symbol, untyped]
 
-    # @rbs tx: Mysql2::Client
+    def self.fill_reaction_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] reaction_model) -> Hash[Symbol, untyped]
+
+    # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs user_model: Hash[Symbol, Mysql2::row_value_type]
     # @rbs returns Hash[Symbol, untyped]
-    def fill_user_response: (Mysql2::Client tx, Hash[Symbol, Mysql2::row_value_type] user_model) -> Hash[Symbol, untyped]
+    def fill_user_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] user_model) -> Hash[Symbol, untyped]
+
+    def self.fill_user_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] user_model) -> Hash[Symbol, untyped]
+
+    class ReserveLivestreamRequest
+      extend Data::_DataClass
+      attr_reader tags: Array[Integer]
+      attr_reader title: String
+      attr_reader description: String
+      attr_reader playlist_url: String
+      attr_reader thumbnail_url: String
+      attr_reader start_at: Integer
+      attr_reader end_at: Integer
+      def self.new: (*untyped) -> ReserveLivestreamRequest
+                  | (**untyped) -> ReserveLivestreamRequest
+                  | ...
+    end
+
+    class PostLivecommentRequest
+      extend Data::_DataClass
+      attr_reader comment: String
+      attr_reader tip: Integer
+      def self.new: (*untyped) -> PostLivecommentRequest
+                  | (**untyped) -> PostLivecommentRequest
+                  | ...
+    end
+
+    class ModerateRequest
+      extend Data::_DataClass
+      attr_reader ng_word: String
+      def self.new: (*untyped) -> ModerateRequest
+                  | (**untyped) -> ModerateRequest
+                  | ...
+    end
+
+    class PostReactionRequest
+      extend Data::_DataClass
+      attr_reader emoji_name: String
+      def self.new: (*untyped) -> PostReactionRequest
+                  | (**untyped) -> PostReactionRequest
+                  | ...
+    end
+
+    BCRYPT_DEFAULT_COST: ::Integer
+
+    FALLBACK_IMAGE: ::String
+
+    class PostIconRequest
+      extend Data::_DataClass
+      attr_reader image: String
+      def self.new: (*untyped) -> PostIconRequest
+                  | (**untyped) -> PostIconRequest
+                  | ...
+    end
+
+    class PostUserRequest
+      extend Data::_DataClass
+      attr_reader name: String
+      attr_reader display_name: String
+      attr_reader description: String
+      attr_reader password: String
+      attr_reader theme: Hash[Symbol, untyped]
+      def self.new: (*untyped) -> PostUserRequest
+                  | (**untyped) -> PostUserRequest
+                  | ...
+    end
+
+    class LoginRequest
+      extend Data::_DataClass
+      attr_reader username: String
+      attr_reader password: String
+      def self.new: (*untyped) -> LoginRequest
+                  | (**untyped) -> LoginRequest
+                  | ...
+    end
+
+    UserRankingEntry: untyped
+
+    class LivestreamRankingEntry
+      extend Data::_DataClass
+      attr_reader livestream_id: Integer
+      attr_reader score: Integer
+      def self.new: (*untyped) -> LivestreamRankingEntry
+                  | (**untyped) -> LivestreamRankingEntry
+                  | ...
+    end
   end
 end

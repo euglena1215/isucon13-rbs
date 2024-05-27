@@ -10,7 +10,7 @@ gems:
   source:
     type: git
     name: ruby/gem_rbs_collection
-    revision: 1352680c62dd2ecf96d0277fcbafb5fc2b1e5935
+    revision: 1cbe291950e00d97d5a9a1929388523eb2d5b939
     remote: https://github.com/ruby/gem_rbs_collection.git
     repo_dir: gems
 - name: cgi
@@ -22,7 +22,7 @@ gems:
   source:
     type: git
     name: ruby/gem_rbs_collection
-    revision: 1352680c62dd2ecf96d0277fcbafb5fc2b1e5935
+    revision: 1cbe291950e00d97d5a9a1929388523eb2d5b939
     remote: https://github.com/ruby/gem_rbs_collection.git
     repo_dir: gems
 - name: mysql2-cs-bind
@@ -30,7 +30,7 @@ gems:
   source:
     type: git
     name: ruby/gem_rbs_collection
-    revision: 1352680c62dd2ecf96d0277fcbafb5fc2b1e5935
+    revision: 1cbe291950e00d97d5a9a1929388523eb2d5b939
     remote: https://github.com/ruby/gem_rbs_collection.git
     repo_dir: gems
 - name: openssl
@@ -42,7 +42,7 @@ gems:
   source:
     type: git
     name: ruby/gem_rbs_collection
-    revision: 1352680c62dd2ecf96d0277fcbafb5fc2b1e5935
+    revision: 1cbe291950e00d97d5a9a1929388523eb2d5b939
     remote: https://github.com/ruby/gem_rbs_collection.git
     repo_dir: gems
 - name: sinatra
@@ -50,7 +50,7 @@ gems:
   source:
     type: git
     name: ruby/gem_rbs_collection
-    revision: 1352680c62dd2ecf96d0277fcbafb5fc2b1e5935
+    revision: 1cbe291950e00d97d5a9a1929388523eb2d5b939
     remote: https://github.com/ruby/gem_rbs_collection.git
     repo_dir: gems
 - name: sinatra-contrib
@@ -58,7 +58,7 @@ gems:
   source:
     type: git
     name: ruby/gem_rbs_collection
-    revision: 1352680c62dd2ecf96d0277fcbafb5fc2b1e5935
+    revision: 1cbe291950e00d97d5a9a1929388523eb2d5b939
     remote: https://github.com/ruby/gem_rbs_collection.git
     repo_dir: gems
 - name: socket

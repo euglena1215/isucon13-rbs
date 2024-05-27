@@ -1,3 +1,9 @@
 module Open3
   def self.capture2e: (*String) -> [String, Process::Status]
 end
+
+module Sinatra
+  module JSON
+    def json: (Array[Hash[Symbol, untyped]] object, ?::Hash[untyped, untyped] options) -> void | ...
+  end
+end

@@ -1,3 +1,8 @@
+# @rbs generic unchecked out Elem
+module Enumerable[unchecked out Elem]
+  def first!: () -> Elem
+end
+
 module Isupipe
   class App < Sinatra::Base
     POWERDNS_SUBDOMAIN_ADDRESS: untyped
@@ -28,11 +33,10 @@ module Isupipe
 
     def self.connect_db: () -> Mysql2::Client[Mysql2::ResultAsHash]
 
-    # @rbs yields: (Mysql2::Client[Mysql2::ResultAsHash]) -> untyped
-    # @rbs returns untyped
-    def db_transaction: () { (Mysql2::Client[Mysql2::ResultAsHash]) -> untyped } -> untyped
+    # :: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
+    def db_transaction: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
 
-    def self.db_transaction: () { (Mysql2::Client[Mysql2::ResultAsHash]) -> untyped } -> untyped
+    def self.db_transaction: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
 
     # singleton(T) が動いてほしいなあ
     # :: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)

@@ -18,6 +18,37 @@ module Enumerable
   end
 end
 
+class Data
+  # @rbs self.@classes: Hash[untyped, Hash[Symbol, String]]
+  @classes = {}
+
+  #:: [KLASS < ::Data::_DataClass] (**untyped) ?{ (KLASS) [self: KLASS] -> void } -> KLASS
+  def self.typed_define(**attrs, &block)
+    k = define(*attrs.keys, &block)
+    @classes[k] = attrs
+    k
+  end
+
+  def self.generate_rbs(class_name, attrs)
+    <<~RBS
+      class #{class_name}
+        extend Data::_DataClass
+        #{attrs.map { |k,v| "attr_reader #{k}: #{v}" }.join("\n  ")}
+        def self.new: (*untyped) -> #{class_name}
+                    | (**untyped) -> #{class_name} | ...
+      end
+    RBS
+  end
+  
+  at_exit do
+    body = ''
+    @classes.each do |klass, attrs|
+      body += generate_rbs(klass.name, attrs) + "\n"
+    end
+    File.write('sig/generated/typed_data.rbs', body)
+  end
+end
+
 module Isupipe
   class App < Sinatra::Base
     enable :logging
@@ -25,7 +56,7 @@ module Isupipe
     set :sessions, domain: 'u.isucon.dev', path: '/', expire_after: 1000*60
     set :session_secret, ENV.fetch('ISUCON13_SESSION_SECRETKEY', 'isucon13_session_cookiestore_defaultsecret').unpack('H*')[0]
 
-    POWERDNS_SUBDOMAIN_ADDRESS = ENV.fetch('ISUCON13_POWERDNS_SUBDOMAIN_ADDRESS')
+    POWERDNS_SUBDOMAIN_ADDRESS = ENV.fetch('ISUCON13_POWERDNS_SUBDOMAIN_ADDRESS', '')
 
     DEFAULT_SESSION_ID_KEY = 'SESSIONID'
     DEFAULT_SESSION_EXPIRES_KEY = 'EXPIRES'
@@ -281,29 +312,15 @@ module Isupipe
 
     # livestream
 
-    # @rbs!
-    #   class ReserveLivestreamRequest
-    #     extend Data::_DataClass
-    #     attr_reader tags: Array[Integer]
-    #     attr_reader title: String
-    #     attr_reader description: String
-    #     attr_reader playlist_url: String
-    #     attr_reader thumbnail_url: String
-    #     attr_reader start_at: Integer
-    #     attr_reader end_at: Integer
-    #     def self.new: (*untyped) -> ReserveLivestreamRequest
-    #                 | (**untyped) -> ReserveLivestreamRequest | ...
-    #   end
-
     # @rbs skip
-    ReserveLivestreamRequest = Data.define(
-      :tags,
-      :title,
-      :description,
-      :playlist_url,
-      :thumbnail_url,
-      :start_at,
-      :end_at,
+    ReserveLivestreamRequest = Data.typed_define(
+      tags: 'Array[Integer]',
+      title: 'String',
+      description: 'String',
+      playlist_url: 'String',
+      thumbnail_url: 'String',
+      start_at: 'Integer',
+      end_at: 'Integer',
     )
 
     # reserve livestream
@@ -570,19 +587,10 @@ module Isupipe
       json(ng_words)
     end
 
-    # @rbs!
-    #   class PostLivecommentRequest
-    #     extend Data::_DataClass
-    #     attr_reader comment: String
-    #     attr_reader tip: Integer
-    #     def self.new: (*untyped) -> PostLivecommentRequest
-    #                 | (**untyped) -> PostLivecommentRequest | ...
-    #   end
-
     # @rbs skip
-    PostLivecommentRequest = Data.define(
-      :comment,
-      :tip,
+    PostLivecommentRequest = Data.typed_define(
+      comment: 'String',
+      tip: 'Integer',
     )
 
     # ライブコメント投稿
@@ -687,16 +695,8 @@ module Isupipe
       json(report)
     end
 
-    # @rbs!
-    #   class ModerateRequest
-    #     extend Data::_DataClass
-    #     attr_reader ng_word: String
-    #     def self.new: (*untyped) -> ModerateRequest
-    #                 | (**untyped) -> ModerateRequest | ...
-    #   end
-
     # @rbs skip
-    ModerateRequest = Data.define(:ng_word) #:: Class
+    ModerateRequest = Data.typed_define(ng_word: 'String')
 
     # 配信者によるモデレーション (NGワード登録)
     post '/api/livestream/:livestream_id/moderate' do
@@ -772,16 +772,8 @@ module Isupipe
       json(reactions)
     end
 
-    # @rbs!
-    #   class PostReactionRequest
-    #     extend Data::_DataClass
-    #     attr_reader emoji_name: String
-    #     def self.new: (*untyped) -> PostReactionRequest
-    #                 | (**untyped) -> PostReactionRequest | ...
-    #   end
-
     # @rbs skip
-    PostReactionRequest = Data.define(:emoji_name)
+    PostReactionRequest = Data.typed_define(emoji_name: 'String')
 
     post '/api/livestream/:livestream_id/reaction' do
       verify_user_session!
@@ -838,16 +830,8 @@ module Isupipe
       end
     end
 
-    # @rbs!
-    #   class PostIconRequest
-    #     extend Data::_DataClass
-    #     attr_reader image: String
-    #     def self.new: (*untyped) -> PostIconRequest
-    #                 | (**untyped) -> PostIconRequest | ...
-    #   end
-
     # @rbs skip
-    PostIconRequest = Data.define(:image)
+    PostIconRequest = Data.typed_define(image: 'String')
 
     post '/api/icon' do
       verify_user_session!
@@ -899,26 +883,14 @@ module Isupipe
       json(user)
     end
 
-    # @rbs!
-    #   class PostUserRequest
-    #     extend Data::_DataClass
-    #     attr_reader name: String
-    #     attr_reader display_name: String
-    #     attr_reader description: String
-    #     attr_reader password: String
-    #     attr_reader theme: Hash[Symbol, untyped]
-    #     def self.new: (*untyped) -> PostUserRequest
-    #                 | (**untyped) -> PostUserRequest | ...
-    #   end
-
     # @rbs skip
-    PostUserRequest = Data.define(
-      :name,
-      :display_name,
-      :description,
+    PostUserRequest = Data.typed_define(
+      name: 'String',
+      display_name: 'String',
+      description: 'String',
       # password is non-hashed password.
-      :password,
-      :theme,
+      password: 'String',
+      theme: 'Hash[Symbol, untyped]',
     )
 
     # ユーザ登録API
@@ -953,20 +925,11 @@ module Isupipe
       json(user)
     end
 
-    # @rbs!
-    #   class LoginRequest
-    #     extend Data::_DataClass
-    #     attr_reader username: String
-    #     attr_reader password: String
-    #     def self.new: (*untyped) -> LoginRequest
-    #                 | (**untyped) -> LoginRequest | ...
-    #   end
-
     # @rbs skip
-    LoginRequest = Data.define(
-      :username,
+    LoginRequest = Data.typed_define(
+      username: 'String',
       # password is non-hashed password.
-      :password,
+      password: 'String',
     )
 
     # ユーザログインAPI
@@ -1118,17 +1081,11 @@ module Isupipe
       json(stats)
     end
 
-    # @rbs!
-    #   class LivestreamRankingEntry
-    #     extend Data::_DataClass
-    #     attr_reader livestream_id: Integer
-    #     attr_reader score: Integer
-    #     def self.new: (*untyped) -> LivestreamRankingEntry
-    #                 | (**untyped) -> LivestreamRankingEntry | ...
-    #   end    
-
     # @rbs skip
-    LivestreamRankingEntry = Data.define(:livestream_id, :score)
+    LivestreamRankingEntry = Data.typed_define(
+      livestream_id: 'Integer',
+      score: 'Integer',
+    )
 
     # ライブ配信統計情報
     get '/api/livestream/:livestream_id/statistics' do

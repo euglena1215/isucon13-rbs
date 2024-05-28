@@ -3,6 +3,15 @@ module Enumerable[unchecked out Elem]
   def first!: () -> Elem
 end
 
+class Data
+  self.@classes: Hash[untyped, Hash[Symbol, String]]
+
+  # :: [KLASS < ::Data::_DataClass] (**untyped) ?{ (KLASS) [self: KLASS] -> void } -> KLASS
+  def self.typed_define: [KLASS < ::Data::_DataClass] (**untyped) ?{ (KLASS) [self: KLASS] -> void } -> KLASS
+
+  def self.generate_rbs: (untyped class_name, untyped attrs) -> untyped
+end
+
 module Isupipe
   class App < Sinatra::Base
     POWERDNS_SUBDOMAIN_ADDRESS: untyped
@@ -71,87 +80,10 @@ module Isupipe
     # @rbs returns Hash[Symbol, untyped]
     def fill_user_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] user_model) -> Hash[Symbol, untyped]
 
-    class ReserveLivestreamRequest
-      extend Data::_DataClass
-      attr_reader tags: Array[Integer]
-      attr_reader title: String
-      attr_reader description: String
-      attr_reader playlist_url: String
-      attr_reader thumbnail_url: String
-      attr_reader start_at: Integer
-      attr_reader end_at: Integer
-      def self.new: (*untyped) -> ReserveLivestreamRequest
-                  | (**untyped) -> ReserveLivestreamRequest
-                  | ...
-    end
-
-    class PostLivecommentRequest
-      extend Data::_DataClass
-      attr_reader comment: String
-      attr_reader tip: Integer
-      def self.new: (*untyped) -> PostLivecommentRequest
-                  | (**untyped) -> PostLivecommentRequest
-                  | ...
-    end
-
-    class ModerateRequest
-      extend Data::_DataClass
-      attr_reader ng_word: String
-      def self.new: (*untyped) -> ModerateRequest
-                  | (**untyped) -> ModerateRequest
-                  | ...
-    end
-
-    class PostReactionRequest
-      extend Data::_DataClass
-      attr_reader emoji_name: String
-      def self.new: (*untyped) -> PostReactionRequest
-                  | (**untyped) -> PostReactionRequest
-                  | ...
-    end
-
     BCRYPT_DEFAULT_COST: ::Integer
 
     FALLBACK_IMAGE: ::String
 
-    class PostIconRequest
-      extend Data::_DataClass
-      attr_reader image: String
-      def self.new: (*untyped) -> PostIconRequest
-                  | (**untyped) -> PostIconRequest
-                  | ...
-    end
-
-    class PostUserRequest
-      extend Data::_DataClass
-      attr_reader name: String
-      attr_reader display_name: String
-      attr_reader description: String
-      attr_reader password: String
-      attr_reader theme: Hash[Symbol, untyped]
-      def self.new: (*untyped) -> PostUserRequest
-                  | (**untyped) -> PostUserRequest
-                  | ...
-    end
-
-    class LoginRequest
-      extend Data::_DataClass
-      attr_reader username: String
-      attr_reader password: String
-      def self.new: (*untyped) -> LoginRequest
-                  | (**untyped) -> LoginRequest
-                  | ...
-    end
-
     UserRankingEntry: untyped
-
-    class LivestreamRankingEntry
-      extend Data::_DataClass
-      attr_reader livestream_id: Integer
-      attr_reader score: Integer
-      def self.new: (*untyped) -> LivestreamRankingEntry
-                  | (**untyped) -> LivestreamRankingEntry
-                  | ...
-    end
   end
 end

@@ -1,8 +1,8 @@
 namespace :rbs do
-  task setup: %i[clean collection rbs_inline substract]
+  task setup: %i[clean collection rbs_inline typed_data substract]
 
   task :clean do
-    sh 'rm', '-rf', 'sig/generated/'
+    sh 'rm', '-rf', 'sig/generated/app.rbs'
     sh 'rm', '-rf', '.gem_rbs_collection/'
   end
 
@@ -14,7 +14,11 @@ namespace :rbs do
     sh 'bundle', 'exec', 'rbs-inline', '--output', 'app.rb'
   end
 
+  task :typed_data do
+    sh 'bundle', 'exec', 'ruby', 'app.rb'
+  end
+
   task :substract do
-    sh 'bundle', 'exec', 'rbs', 'subtract', '--write', 'sig/generated/app.rbs', 'sig/app.rbs'
+    sh 'bundle', 'exec', 'rbs', 'subtract', '--write', 'sig/generated/app.rbs', 'sig/generated/typed_data.rbs', 'sig/app.rbs'
   end
 end

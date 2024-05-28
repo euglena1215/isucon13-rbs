@@ -86,8 +86,18 @@ module Isupipe
         end
       end
 
-      # singleton(T) が動いてほしいなあ
-      #:: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
+      # #::記法ではオーバーロードが無視されるバグ?を回避するため @rbs! で記述
+      # ref. https://github.com/soutaro/rbs-inline/issues/36
+      # @rbs!
+      #   def decode_request_body: (singleton(ReserveLivestreamRequest)) -> ReserveLivestreamRequest 
+      #                          | (singleton(PostLivecommentRequest)) -> PostLivecommentRequest 
+      #                          | (singleton(ModerateRequest)) -> ModerateRequest 
+      #                          | (singleton(PostReactionRequest)) -> PostReactionRequest 
+      #                          | (singleton(PostIconRequest)) -> PostIconRequest 
+      #                          | (singleton(PostUserRequest)) -> PostUserRequest 
+      #                          | (singleton(LoginRequest)) -> LoginRequest
+      
+      # @rbs skip
       def decode_request_body(data_class)
         body = JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true)
         data_class.new(**data_class.members.map { |key| [key, body[key]] }.to_h)
@@ -309,7 +319,6 @@ module Isupipe
       end
 
       req = decode_request_body(ReserveLivestreamRequest)
-      raise unless req.is_a?(ReserveLivestreamRequest)
 
       livestream = db_transaction do |tx|
         # 2023/11/25 10:00からの１年間の期間内であるかチェック
@@ -591,7 +600,6 @@ module Isupipe
       livestream_id = cast_as_integer(params[:livestream_id])
 
       req = decode_request_body(PostLivecommentRequest)
-      raise unless req.is_a?(PostLivecommentRequest)
 
       livecomment = db_transaction do |tx|
         livestream_model = tx.xquery('SELECT * FROM livestreams WHERE id = ?', livestream_id).first
@@ -705,7 +713,6 @@ module Isupipe
       livestream_id = cast_as_integer(params[:livestream_id])
 
       req = decode_request_body(ModerateRequest)
-      raise unless req.is_a?(ModerateRequest)
 
       word_id = db_transaction do |tx|
         # 配信者自身の配信に対するmoderateなのかを検証
@@ -790,7 +797,6 @@ module Isupipe
       livestream_id = Integer(params[:livestream_id], 10)
 
       req = decode_request_body(PostReactionRequest)
-      raise unless req.is_a?(PostReactionRequest)
 
       reaction = db_transaction do |tx|
         created_at = Time.now.to_i
@@ -856,7 +862,6 @@ module Isupipe
       end
 
       req = decode_request_body(PostIconRequest)
-      raise unless req.is_a?(PostIconRequest)
       image = Base64.decode64(req.image)
 
       icon_id = db_transaction do |tx|
@@ -919,7 +924,6 @@ module Isupipe
     # ユーザ登録API
     post '/api/register' do
       req = decode_request_body(PostUserRequest)
-      raise unless req.is_a?(PostUserRequest)
       if req.name == 'pipe'
         raise HttpError.new(400, "the username 'pipe' is reserved")
       end
@@ -968,7 +972,6 @@ module Isupipe
     # ユーザログインAPI
     post '/api/login' do
       req = decode_request_body(LoginRequest)
-      raise unless req.is_a?(LoginRequest)
 
       user_model = db_transaction do |tx|
         # usernameはUNIQUEなので、whereで一意に特定できる

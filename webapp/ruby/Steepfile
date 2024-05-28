@@ -7,7 +7,5 @@ target :app do
 
   library "json", "securerandom", "base64", "digest"
 
-  configure_code_diagnostics do |hash|
-    hash[D::Ruby::MethodDefinitionMissing] = :warning
-  end
+  configure_code_diagnostics(D::Ruby.all_error)
 end

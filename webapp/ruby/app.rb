@@ -57,9 +57,6 @@ module Isupipe
         Thread.current[:db_conn] ||= connect_db
       end
 
-      # @rbs!
-      #   def self.db_conn: () -> Mysql2::Client[Mysql2::ResultAsHash]
-
       def connect_db #:: Mysql2::Client[Mysql2::ResultAsHash]
         Mysql2::Client.new(
           host: ENV.fetch('ISUCON13_MYSQL_DIALCONFIG_ADDRESS', '127.0.0.1'),
@@ -72,9 +69,6 @@ module Isupipe
           reconnect: true,
         )
       end
-
-      # @rbs!
-      #   def self.connect_db: () -> Mysql2::Client[Mysql2::ResultAsHash]
 
       #:: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
       def db_transaction(&block)
@@ -92,18 +86,12 @@ module Isupipe
         end
       end
 
-      # @rbs!
-      #   def self.db_transaction: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
-
       # singleton(T) が動いてほしいなあ
       #:: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
       def decode_request_body(data_class)
         body = JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true)
         data_class.new(**data_class.members.map { |key| [key, body[key]] }.to_h)
       end
-
-      # @rbs!
-      #   def self.decode_request_body: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
 
       # @rbs str: String
       # @rbs returns Integer
@@ -112,9 +100,6 @@ module Isupipe
       rescue
         raise HttpError.new(400)
       end
-
-      # @rbs!
-      #   def self.cast_as_integer: (String str) -> Integer
 
       def verify_user_session! #:: nil
         sess = session[DEFAULT_SESSION_ID_KEY]
@@ -134,9 +119,6 @@ module Isupipe
 
         nil
       end
-
-      # @rbs!
-      #   def self.verify_user_session!: () -> nil
 
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs livestream_model: Hash[Symbol, Mysql2::row_value_type]
@@ -159,9 +141,6 @@ module Isupipe
         )
       end
 
-      # @rbs!
-      #   def self.fill_livestream_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] livestream_model) -> Hash[Symbol, untyped]
-
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs livecomment_model: Hash[Symbol, untyped]
       # @rbs returns Hash[Symbol, untyped]
@@ -177,9 +156,6 @@ module Isupipe
           livestream:,
         )
       end
-
-      # @rbs!
-      #   def self.fill_livecomment_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] livecomment_model) -> Hash[Symbol, untyped]
 
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs report_model: Hash[Symbol, untyped]
@@ -197,9 +173,6 @@ module Isupipe
         )
       end
 
-      # @rbs!
-      #   def self.fill_livecomment_report_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] report_model) -> Hash[Symbol, untyped]
-
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs reaction_model: Hash[Symbol, Mysql2::row_value_type]
       # @rbs returns Hash[Symbol, untyped]
@@ -215,9 +188,6 @@ module Isupipe
           livestream:,
         )
       end
-
-      # @rbs!
-      #   def self.fill_reaction_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] reaction_model) -> Hash[Symbol, untyped]                                   
 
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs user_model: Hash[Symbol, Mysql2::row_value_type]
@@ -247,9 +217,6 @@ module Isupipe
           icon_hash:,
         }
       end
-
-      # @rbs!
-      #   def self.fill_user_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] user_model) -> Hash[Symbol, untyped]
     end
 
     # 初期化

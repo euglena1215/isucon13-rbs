@@ -27,67 +27,45 @@ module Isupipe
 
     def db_conn: () -> Mysql2::Client[Mysql2::ResultAsHash]
 
-    def self.db_conn: () -> Mysql2::Client[Mysql2::ResultAsHash]
-
     def connect_db: () -> Mysql2::Client[Mysql2::ResultAsHash]
-
-    def self.connect_db: () -> Mysql2::Client[Mysql2::ResultAsHash]
 
     # :: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
     def db_transaction: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
-
-    def self.db_transaction: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
 
     # singleton(T) が動いてほしいなあ
     # :: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
     def decode_request_body: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
 
-    def self.decode_request_body: (singleton(ReserveLivestreamRequest) | singleton(PostLivecommentRequest) | singleton(ModerateRequest) | singleton(PostReactionRequest) | singleton(PostIconRequest) | singleton(PostUserRequest) | singleton(LoginRequest) data_class) -> (ReserveLivestreamRequest | PostLivecommentRequest | ModerateRequest | PostReactionRequest | PostIconRequest | PostUserRequest | LoginRequest)
-
     # @rbs str: String
     # @rbs returns Integer
     def cast_as_integer: (String str) -> Integer
 
-    def self.cast_as_integer: (String str) -> Integer
-
     def verify_user_session!: () -> nil
-
-    def self.verify_user_session!: () -> nil
 
     # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs livestream_model: Hash[Symbol, Mysql2::row_value_type]
     # @rbs returns Hash[Symbol, untyped]
     def fill_livestream_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] livestream_model) -> Hash[Symbol, untyped]
 
-    def self.fill_livestream_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] livestream_model) -> Hash[Symbol, untyped]
-
     # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs livecomment_model: Hash[Symbol, untyped]
     # @rbs returns Hash[Symbol, untyped]
     def fill_livecomment_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] livecomment_model) -> Hash[Symbol, untyped]
-
-    def self.fill_livecomment_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] livecomment_model) -> Hash[Symbol, untyped]
 
     # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs report_model: Hash[Symbol, untyped]
     # @rbs returns Hash[Symbol, untyped]
     def fill_livecomment_report_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] report_model) -> Hash[Symbol, untyped]
 
-    def self.fill_livecomment_report_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, untyped] report_model) -> Hash[Symbol, untyped]
-
     # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs reaction_model: Hash[Symbol, Mysql2::row_value_type]
     # @rbs returns Hash[Symbol, untyped]
     def fill_reaction_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] reaction_model) -> Hash[Symbol, untyped]
 
-    def self.fill_reaction_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] reaction_model) -> Hash[Symbol, untyped]
-
     # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
     # @rbs user_model: Hash[Symbol, Mysql2::row_value_type]
     # @rbs returns Hash[Symbol, untyped]
     def fill_user_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] user_model) -> Hash[Symbol, untyped]
-
-    def self.fill_user_response: (Mysql2::Client[Mysql2::ResultAsHash] tx, Hash[Symbol, Mysql2::row_value_type] user_model) -> Hash[Symbol, untyped]
 
     class ReserveLivestreamRequest
       extend Data::_DataClass

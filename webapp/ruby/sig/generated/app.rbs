@@ -41,6 +41,13 @@ module Isupipe
     # :: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
     def db_transaction: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
 
+    # :: (singleton(ReserveLivestreamRequest)) -> ReserveLivestreamRequest
+    # :: (singleton(PostLivecommentRequest)) -> PostLivecommentRequest
+    # :: (singleton(ModerateRequest)) -> ModerateRequest
+    # :: (singleton(PostReactionRequest)) -> PostReactionRequest
+    # :: (singleton(PostIconRequest)) -> PostIconRequest
+    # :: (singleton(PostUserRequest)) -> PostUserRequest
+    # :: (singleton(LoginRequest)) -> LoginRequest
     def decode_request_body: (singleton(ReserveLivestreamRequest)) -> ReserveLivestreamRequest
                            | (singleton(PostLivecommentRequest)) -> PostLivecommentRequest
                            | (singleton(ModerateRequest)) -> ModerateRequest

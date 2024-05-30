@@ -116,19 +116,14 @@ module Isupipe
           end
         end
       end
-
-      # #::記法ではオーバーロードが無視されるバグ?を回避するため @rbs! で記述
-      # ref. https://github.com/soutaro/rbs-inline/issues/36
-      # @rbs!
-      #   def decode_request_body: (singleton(ReserveLivestreamRequest)) -> ReserveLivestreamRequest 
-      #                          | (singleton(PostLivecommentRequest)) -> PostLivecommentRequest 
-      #                          | (singleton(ModerateRequest)) -> ModerateRequest 
-      #                          | (singleton(PostReactionRequest)) -> PostReactionRequest 
-      #                          | (singleton(PostIconRequest)) -> PostIconRequest 
-      #                          | (singleton(PostUserRequest)) -> PostUserRequest 
-      #                          | (singleton(LoginRequest)) -> LoginRequest
       
-      # @rbs skip
+      #:: (singleton(ReserveLivestreamRequest)) -> ReserveLivestreamRequest
+      #:: (singleton(PostLivecommentRequest)) -> PostLivecommentRequest
+      #:: (singleton(ModerateRequest)) -> ModerateRequest
+      #:: (singleton(PostReactionRequest)) -> PostReactionRequest
+      #:: (singleton(PostIconRequest)) -> PostIconRequest
+      #:: (singleton(PostUserRequest)) -> PostUserRequest
+      #:: (singleton(LoginRequest)) -> LoginRequest
       def decode_request_body(data_class)
         body = JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true)
         data_class.new(**data_class.members.map { |key| [key, body[key]] }.to_h)

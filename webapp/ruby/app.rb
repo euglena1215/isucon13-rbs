@@ -13,39 +13,8 @@ require 'sinatra/json'
 
 # @rbs generic unchecked out Elem
 module Enumerable
-  def first! #:: Elem
+  def first! #: Elem
     first || raise('empty')
-  end
-end
-
-class Data
-  # @rbs self.@classes: Hash[untyped, Hash[Symbol, String]]
-  @classes = {}
-
-  #:: [KLASS < ::Data::_DataClass] (**untyped) ?{ (KLASS) [self: KLASS] -> void } -> KLASS
-  def self.typed_define(**attrs, &block)
-    k = define(*attrs.keys, &block)
-    @classes[k] = attrs
-    k
-  end
-
-  def self.generate_rbs(class_name, attrs)
-    <<~RBS
-      class #{class_name}
-        extend Data::_DataClass
-        #{attrs.map { |k,v| "attr_reader #{k}: #{v}" }.join("\n  ")}
-        def self.new: (*untyped) -> #{class_name}
-                    | (**untyped) -> #{class_name} | ...
-      end
-    RBS
-  end
-  
-  at_exit do
-    body = ''
-    @classes.each do |klass, attrs|
-      body += generate_rbs(klass.name, attrs) + "\n"
-    end
-    File.write('sig/generated/typed_data.rbs', body)
   end
 end
 
@@ -65,11 +34,11 @@ module Isupipe
 
     class HttpError < StandardError
       # @dynamic code
-      attr_reader :code #:: Integer
+      attr_reader :code #: Integer
 
       # @rbs code: Integer
-      # @rbs message: ?String
-      # @rbs returns void
+      # @rbs message: String?
+      # @rbs return: void
       def initialize(code, message = nil)
         super(message || "HTTP error #{code}")
         @code = code
@@ -84,11 +53,11 @@ module Isupipe
     end
 
     helpers do
-      def db_conn #:: Mysql2::Client[Mysql2::ResultAsHash]
+      def db_conn #: Mysql2::Client[Mysql2::ResultAsHash]
         Thread.current[:db_conn] ||= connect_db
       end
 
-      def connect_db #:: Mysql2::Client[Mysql2::ResultAsHash]
+      def connect_db #: Mysql2::Client[Mysql2::ResultAsHash]
         Mysql2::Client.new(
           host: ENV.fetch('ISUCON13_MYSQL_DIALCONFIG_ADDRESS', '127.0.0.1'),
           port: ENV.fetch('ISUCON13_MYSQL_DIALCONFIG_PORT', '3306').to_i,
@@ -101,7 +70,7 @@ module Isupipe
         )
       end
 
-      #:: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
+      #: [T] () { (Mysql2::Client[Mysql2::ResultAsHash]) -> T } -> T
       def db_transaction(&block)
         db_conn.query('BEGIN')
         ok = false
@@ -116,28 +85,28 @@ module Isupipe
           end
         end
       end
-      
-      #:: (singleton(ReserveLivestreamRequest)) -> ReserveLivestreamRequest
-      #:: (singleton(PostLivecommentRequest)) -> PostLivecommentRequest
-      #:: (singleton(ModerateRequest)) -> ModerateRequest
-      #:: (singleton(PostReactionRequest)) -> PostReactionRequest
-      #:: (singleton(PostIconRequest)) -> PostIconRequest
-      #:: (singleton(PostUserRequest)) -> PostUserRequest
-      #:: (singleton(LoginRequest)) -> LoginRequest
+
+      #: (singleton(ReserveLivestreamRequest)) -> ReserveLivestreamRequest
+      #: (singleton(PostLivecommentRequest)) -> PostLivecommentRequest
+      #: (singleton(ModerateRequest)) -> ModerateRequest
+      #: (singleton(PostReactionRequest)) -> PostReactionRequest
+      #: (singleton(PostIconRequest)) -> PostIconRequest
+      #: (singleton(PostUserRequest)) -> PostUserRequest
+      #: (singleton(LoginRequest)) -> LoginRequest
       def decode_request_body(data_class)
-        body = JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true)
-        data_class.new(**data_class.members.map { |key| [key, body[key]] }.to_h)
+        body = JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true) #: Hash[Symbol, untyped]
+        data_class.new(**data_class.members.map { |key| [key, body[key]] }.to_h) # steep:ignore
       end
 
       # @rbs str: String
-      # @rbs returns Integer
+      # @rbs return: Integer
       def cast_as_integer(str)
         Integer(str, 10)
       rescue
         raise HttpError.new(400)
       end
 
-      def verify_user_session! #:: nil
+      def verify_user_session! #: nil
         sess = session[DEFAULT_SESSION_ID_KEY]
         unless sess
           raise HttpError.new(403)
@@ -158,7 +127,7 @@ module Isupipe
 
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs livestream_model: Hash[Symbol, Mysql2::row_value_type]
-      # @rbs returns Hash[Symbol, untyped]
+      # @rbs return: Hash[Symbol, untyped]
       def fill_livestream_response(tx, livestream_model)
         owner_model = tx.xquery('SELECT * FROM users WHERE id = ?', livestream_model.fetch(:user_id)).first!
         owner = fill_user_response(tx, owner_model)
@@ -168,7 +137,7 @@ module Isupipe
           {
             id: tag_model.fetch(:id),
             name: tag_model.fetch(:name),
-          }  
+          }
         end
 
         livestream_model.slice(:id, :title, :description, :playlist_url, :thumbnail_url, :start_at, :end_at).merge(
@@ -179,7 +148,7 @@ module Isupipe
 
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs livecomment_model: Hash[Symbol, untyped]
-      # @rbs returns Hash[Symbol, untyped]
+      # @rbs return: Hash[Symbol, untyped]
       def fill_livecomment_response(tx, livecomment_model)
         comment_owner_model = tx.xquery('SELECT * FROM users WHERE id = ?', livecomment_model.fetch(:user_id)).first!
         comment_owner = fill_user_response(tx, comment_owner_model)
@@ -195,7 +164,7 @@ module Isupipe
 
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs report_model: Hash[Symbol, untyped]
-      # @rbs returns Hash[Symbol, untyped]
+      # @rbs return: Hash[Symbol, untyped]
       def fill_livecomment_report_response(tx, report_model)
         reporter_model = tx.xquery('SELECT * FROM users WHERE id = ?', report_model.fetch(:user_id)).first!
         reporter = fill_user_response(tx, reporter_model)
@@ -211,7 +180,7 @@ module Isupipe
 
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs reaction_model: Hash[Symbol, Mysql2::row_value_type]
-      # @rbs returns Hash[Symbol, untyped]
+      # @rbs return: Hash[Symbol, untyped]
       def fill_reaction_response(tx, reaction_model)
         user_model = tx.xquery('SELECT * FROM users WHERE id = ?', reaction_model.fetch(:user_id)).first!
         user = fill_user_response(tx, user_model)
@@ -227,11 +196,11 @@ module Isupipe
 
       # @rbs tx: Mysql2::Client[Mysql2::ResultAsHash]
       # @rbs user_model: Hash[Symbol, Mysql2::row_value_type]
-      # @rbs returns Hash[Symbol, untyped]
+      # @rbs return: Hash[Symbol, untyped]
       def fill_user_response(tx, user_model)
         theme_model = tx.xquery('SELECT * FROM themes WHERE user_id = ?', user_model.fetch(:id)).first!
         icon_model = tx.xquery('SELECT image FROM icons WHERE user_id = ?', user_model.fetch(:id)).first
-        
+
         image =
           if icon_model
             image = icon_model.fetch(:image)
@@ -307,15 +276,14 @@ module Isupipe
 
     # livestream
 
-    # @rbs skip
-    ReserveLivestreamRequest = Data.typed_define(
-      tags: 'Array[Integer]',
-      title: 'String',
-      description: 'String',
-      playlist_url: 'String',
-      thumbnail_url: 'String',
-      start_at: 'Integer',
-      end_at: 'Integer',
+    ReserveLivestreamRequest = Data.define(
+      :tags, #: Array[Integer]
+      :title, #: String
+      :description, #: String
+      :playlist_url, #: String
+      :thumbnail_url, #: String
+      :start_at, #: Integer
+      :end_at #: Integer
     )
 
     # reserve livestream
@@ -582,10 +550,9 @@ module Isupipe
       json(ng_words)
     end
 
-    # @rbs skip
-    PostLivecommentRequest = Data.typed_define(
-      comment: 'String',
-      tip: 'Integer',
+    PostLivecommentRequest = Data.define(
+      :comment, #: String
+      :tip #: Integer
     )
 
     # ライブコメント投稿
@@ -690,8 +657,9 @@ module Isupipe
       json(report)
     end
 
-    # @rbs skip
-    ModerateRequest = Data.typed_define(ng_word: 'String')
+    ModerateRequest = Data.define(
+      :ng_word #: String
+    )
 
     # 配信者によるモデレーション (NGワード登録)
     post '/api/livestream/:livestream_id/moderate' do
@@ -767,8 +735,9 @@ module Isupipe
       json(reactions)
     end
 
-    # @rbs skip
-    PostReactionRequest = Data.typed_define(emoji_name: 'String')
+    PostReactionRequest = Data.define(
+      :emoji_name #: String
+    )
 
     post '/api/livestream/:livestream_id/reaction' do
       verify_user_session!
@@ -825,8 +794,9 @@ module Isupipe
       end
     end
 
-    # @rbs skip
-    PostIconRequest = Data.typed_define(image: 'String')
+    PostIconRequest = Data.define(
+      :image #: String
+    )
 
     post '/api/icon' do
       verify_user_session!
@@ -872,20 +842,19 @@ module Isupipe
         unless user_model
           raise HttpError.new(404)
         end
-        fill_user_response(tx, user_model)    
+        fill_user_response(tx, user_model)
       end
 
       json(user)
     end
 
-    # @rbs skip
-    PostUserRequest = Data.typed_define(
-      name: 'String',
-      display_name: 'String',
-      description: 'String',
+    PostUserRequest = Data.define(
+      :name, #: String
+      :display_name, #: String
+      :description, #: String
       # password is non-hashed password.
-      password: 'String',
-      theme: 'Hash[Symbol, untyped]',
+      :password, #: String
+      :theme #: Hash[Symbol, untyped]
     )
 
     # ユーザ登録API
@@ -920,11 +889,10 @@ module Isupipe
       json(user)
     end
 
-    # @rbs skip
-    LoginRequest = Data.typed_define(
-      username: 'String',
+    LoginRequest = Data.define(
+      :username, #: String
       # password is non-hashed password.
-      password: 'String',
+      :password #: String
     )
 
     # ユーザログインAPI
@@ -1076,10 +1044,9 @@ module Isupipe
       json(stats)
     end
 
-    # @rbs skip
-    LivestreamRankingEntry = Data.typed_define(
-      livestream_id: 'Integer',
-      score: 'Integer',
+    LivestreamRankingEntry = Data.define(
+      :livestream_id, #: Integer
+      :score #: Integer
     )
 
     # ライブ配信統計情報
@@ -1103,7 +1070,9 @@ module Isupipe
           end
 
           score = reactions + total_tips
-          LivestreamRankingEntry.new(livestream_id: livestream.fetch(:id), score:)
+          l_id = livestream.fetch(:id)
+          raise unless l_id.is_a?(Integer)
+          LivestreamRankingEntry.new(livestream_id: l_id, score:)
         end
         ranking.sort_by! { |entry| [entry.score, entry.livestream_id] }
         ridx = ranking.rindex { |entry| entry.livestream_id == livestream_id } || raise
